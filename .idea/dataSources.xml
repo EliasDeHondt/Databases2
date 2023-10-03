@@ -15,5 +15,12 @@
       <jdbc-url>jdbc:postgresql://localhost:5432/Demo</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
+    <data-source source="LOCAL" name="HolidayPark@localhost" uuid="41bcc6bb-e077-4d8f-9052-2d4373ecc609">
+      <driver-ref>postgresql</driver-ref>
+      <synchronize>true</synchronize>
+      <jdbc-driver>org.postgresql.Driver</jdbc-driver>
+      <jdbc-url>jdbc:postgresql://localhost:5432/HolidayPark</jdbc-url>
+      <working-dir>$ProjectFileDir$</working-dir>
+    </data-source>
   </component>
 </project>
