@@ -44,3 +44,5 @@ SAVEPOINT save_2;
 ROLLBACK TO SAVEPOINT save_1;
 -- SQL
 COMMIT;
+
+UPDATE emp e SET sal = sal * 1.1 WHERE sal < (SELECT AVG(sal) FROM emp WHERE deptno=e.deptno);
