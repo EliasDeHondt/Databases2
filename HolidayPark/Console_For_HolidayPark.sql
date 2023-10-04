@@ -51,6 +51,7 @@ SELECT park_code, typeno, no_bedrooms FROM cottagetypes WHERE no_bedrooms=(SELEC
 DELETE FROM clients WHERE first_name='PIETER' AND last_name='STOOT';
 -- Cascade Delete
 
+/* Start transactie */
 BEGIN;
 ALTER TABLE reservations DROP CONSTRAINT fk_res_client;
 SAVEPOINT save_3;
@@ -58,6 +59,7 @@ DELETE FROM clients WHERE first_name='PIETER' AND last_name='STOOT';
 SAVEPOINT save_4;
 COMMIT;
 ROLLBACK;
+/* End transactie */
 
 SELECT * FROM reservations WHERE typeno='FK' AND houseno=225 AND park_code=(SELECT code FROM parks WHERE upper(park_name)='WEERTERBERGEN');
 
@@ -65,8 +67,6 @@ DELETE FROM cottages WHERE typeno='FK' AND houseno=225 AND park_code=(SELECT cod
 
 
 -- oef 3
-
-
 SELECT * FROM cottype_prices WHERE season_code IN (SELECT code FROM seasons where description LIKE '%summer%2020%')
                                AND park_code IN (SELECT code FROM parks JOIN countries c ON parks.country_code = c.country_code
 WHERE lower(country_name) LIKE 'neth%');
