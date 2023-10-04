@@ -75,3 +75,5 @@ UPDATE cottype_prices SET price_weekend=price_midweek*1.1, price_midweek=price_m
                       WHERE season_code IN (SELECT * FROM cottype_prices WHERE season_code IN (SELECT code FROM seasons where description LIKE '%summer%2020%')
                                                             AND park_code IN (SELECT code FROM parks JOIN countries c ON parks.country_code = c.country_code
                                                                               WHERE lower(country_name) LIKE 'neth%'));
+
+
