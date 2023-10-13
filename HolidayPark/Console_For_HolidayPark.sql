@@ -5,6 +5,7 @@ SELECT * FROM clients;
 CREATE USER EliasDH PASSWORD 'ROOT123456789' SUPERUSER;
 GRANT ALL ON TABLE clients TO EliasDH;
 
+
 SET ROLE EliasDH;
 
 SELECT user;
@@ -177,5 +178,111 @@ ALTER TABLE cottages ENABLE TRIGGER ALL;
 ROLLBACK;
 
 
+-- Voorbeeld van: [READ COMMITTED STATEMENT LEVEL]
+-- User 1 doet en COMMIT; en dan pas ziet User 2 de veranderingen
+
+BEGIN; -- User 1
+SELECT last_name FROM clients WHERE clientNo = 1;
+
+SELECT last_name FROM clients WHERE clientNo = 1;
+COMMIT;
+
+BEGIN; -- User 2
+
+UPDATE clients SET last_name = 'DE HONDT' WHERE clientNo = 1;
+
+COMMIT;
+
+-- Voorbeeld van: [READ COMMITTED STATEMENT LEVEL]
+-- User 1 doet en COMMIT; en dan pas ziet User 2 de veranderingen
+
+BEGIN; -- User 1
+SELECT last_name FROM clients WHERE clientNo = 1; -- last_name = X
+
+SELECT last_name FROM clients WHERE clientNo = 1; -- last_name = Y
+COMMIT;
+
+BEGIN; -- User 2
+
+UPDATE clients SET last_name = 'DE HONDT' WHERE clientNo = 1;  -- X = Y
+
+COMMIT;
+
+-- Voorbeeld van: [SET TRANSACTION READ ONLY]
+-- User 2 doet een COMMIT; en User 1 ziet geen veranderingen
+
+SET TRANSACTION READ ONLY;
+BEGIN; -- User 1
+SELECT last_name FROM clients WHERE clientNo = 1; -- last_name = X
+
+SELECT last_name FROM clients WHERE clientNo = 1; -- last_name = X
+COMMIT;
+
+BEGIN; -- User 2
+
+UPDATE clients SET last_name = 'DE HONDT' WHERE clientNo = 1;  -- X = Y
+COMMIT;
 
 
+-- Voorbeeld van: [SET TRANSACTION ISOLATION LEVEL SERIALIZABLE]
+-- User 2 doet een COMMIT; en User 1 ziet geen veranderingen (User 2 kan wel een UPDATE)
+
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+BEGIN; -- User 1
+SELECT last_name FROM clients WHERE clientNo = 1; -- last_name = X
+
+SELECT last_name FROM clients WHERE clientNo = 1; -- last_name = X
+UPDATE clients SET last_name = 'DE HONDT' WHERE clientNo = 2; -- User 1 kan ook een UPDATE doen zolang het geen conflict geeft met User 2
+COMMIT;
+
+BEGIN; -- User 2
+
+UPDATE clients SET last_name = 'DE HONDT' WHERE clientNo = 1;  -- X = Y
+COMMIT;
+
+
+-- Voorbeeld van: [DEADLOCK]
+-- User 1 moet en COMMIT; maar User 2 moet ook en COMMIT; Dus RIP HAHAHAHA
+
+BEGIN; -- User 1
+UPDATE clients SET last_name = 'X' WHERE clientNo = 1;
+
+UPDATE clients SET last_name = 'Y' WHERE clientNo = 2;
+COMMIT;
+
+BEGIN; -- User 2
+UPDATE clients SET last_name = 'X' WHERE clientNo = 2;
+
+UPDATE clients SET last_name = 'Y' WHERE clientNo = 1;
+COMMIT;
+
+
+-- Voorbeeld van: [LOCK]
+-- User 1 moet en COMMIT; doen voor dat User 2 een UPDATE kan doen
+
+BEGIN; -- User 1
+UPDATE clients SET last_name = 'DE HONDT' WHERE clientNo = 1;  -- X = Y
+
+COMMIT;
+
+BEGIN; -- User 2
+
+UPDATE clients SET last_name = 'DE HONDT' WHERE clientNo = 1;  -- X = Y
+COMMIT;
+
+
+-- Voorbeeld van: [LOCK & UPDATE NOWAIT]
+-- Het verschil met de gewonen DEADLOCK is dat met UPDATE NOWAIT de transactie niet wordt uitgevoerd en een ERROR geeft (dus niet moet wachten op de andere transactie)
+
+BEGIN; -- User 1
+SELECT last_name FROM clients WHERE clientNo = 1 FOR UPDATE NOWAIT; -- last_name = X
+
+UPDATE clients SET last_name = 'DE HONDT' WHERE clientNo = 1;  -- X = Y
+COMMIT;
+
+BEGIN; -- User 2
+
+SELECT last_name FROM clients WHERE clientNo = 1 FOR UPDATE NOWAIT; -- last_name = X
+
+SELECT last_name FROM clients WHERE clientNo = 1 FOR UPDATE NOWAIT; -- last_name = X
+COMMIT;
