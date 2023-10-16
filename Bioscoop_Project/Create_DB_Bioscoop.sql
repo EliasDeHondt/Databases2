@@ -113,7 +113,7 @@ CREATE TABLE public.ticket_reservation (
 	schedulingid numeric(10),
 	confirmation_email_sent boolean,
 	payment_method public.payment_method,
-	price numeric(5,2),
+	price numeric(5,2) CHECK ( price > 0 ),
 	CONSTRAINT ticket_reservations_pk PRIMARY KEY (reservationid)
 );
 
@@ -122,7 +122,7 @@ CREATE TYPE public.seat_zone AS ENUM ('normal_zone','cosyseat_zone','wheelchair_
 CREATE TABLE public.seat_reservation (
 	seat_reservationid numeric(5) NOT NULL,
 	reservationid numeric(10),
-	price numeric(5,2),
+    price numeric(5,2) CHECK ( price > 0 ),
 	seat_zone public.seat_zone,
 	CONSTRAINT seat_reservations_pk PRIMARY KEY (seat_reservationid)
 );
