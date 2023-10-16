@@ -242,7 +242,7 @@ COMMIT;
 
 
 -- Voorbeeld van: [DEADLOCK]
--- User 1 moet en COMMIT; maar User 2 moet ook en COMMIT; Dus RIP HAHAHAHA
+-- User 1 moet en COMMIT; doen maar User 2 moet ook en COMMIT; deon dus RIP
 
 BEGIN; -- User 1
 UPDATE clients SET last_name = 'X' WHERE clientNo = 1;
