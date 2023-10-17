@@ -326,3 +326,22 @@ ON DELETE NO ACTION ON UPDATE NO ACTION;
 ALTER TABLE public.cast_or_director ADD CONSTRAINT cast_fk FOREIGN KEY (castid)
 REFERENCES public."cast" (castid) MATCH SIMPLE
 ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+
+-- **************************************** --
+-- CREATE Users                             --
+-- **************************************** --
+CREATE USER programming_manager PASSWORD '123';
+GRANT ALL ON TABLE programming_managers_view TO programming_manager;
+
+CREATE USER webapplication_mobileapp PASSWORD '123';
+GRANT ALL ON TABLE webapplication_mobileapp_view TO webapplication_mobileapp;
+
+CREATE USER sales_terminal PASSWORD '123';
+GRANT ALL ON TABLE sales_terminal_cp TO sales_terminal;
+
+CREATE USER hall_attendant PASSWORD '123';
+GRANT ALL ON TABLE hall_attendant_view TO hall_attendant;
+
+CREATE USER content_managers PASSWORD '123';
+GRANT ALL ON TABLE content_managers_view TO content_managers;
