@@ -271,7 +271,6 @@ CREATE VIEW public.hall_attendant_view AS SELECT public.ticket.barcode FROM publ
 
 CREATE VIEW public.content_managers_view AS SELECT public."pre-roll".* FROM public."pre-roll";
 
-
 -- **************************************** --
 -- CREATE Constraint                        --
 -- **************************************** --
@@ -326,7 +325,6 @@ ON DELETE NO ACTION ON UPDATE NO ACTION;
 ALTER TABLE public.cast_or_director ADD CONSTRAINT cast_fk FOREIGN KEY (castid)
 REFERENCES public."cast" (castid) MATCH SIMPLE
 ON DELETE NO ACTION ON UPDATE NO ACTION;
-
 
 -- **************************************** --
 -- CREATE Users                             --
