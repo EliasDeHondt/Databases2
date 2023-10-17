@@ -84,8 +84,10 @@ CREATE TABLE public.scheduling (
 	schedulingid numeric(10) NOT NULL,
 	complexid numeric(2),
 	movieid numeric(10),
-	date date,
-	"time" time,
+	start_date date,
+	start_time time,
+    end_date date,
+    end_time time,
 	CONSTRAINT scheduling_pk PRIMARY KEY (schedulingid)
 );
 
@@ -154,15 +156,13 @@ CREATE TABLE public.movie (
 	"movieId" numeric(10) NOT NULL,
 	"pre-rollid" numeric(3),
 	cast_or_directorid numeric(8),
+    oscarsid numeric(10),
 	title varchar(25),
 	genre public.movie_genre,
 	duration time(2),
 	children_allowed boolean,
 	movie_company varchar(25),
 	country_of_origin varchar(25),
-	oscar_best_actor boolean,
-	oscar_best_music boolean,
-	oscar_best_director boolean,
 	archive boolean,
 	CONSTRAINT movies_pk PRIMARY KEY ("movieId")
 );
@@ -222,6 +222,38 @@ CREATE TABLE public.cast_or_director (
 CREATE INDEX cast_or_directorid_index ON public.cast_or_director
 USING btree ( cast_or_directorid );
 
+CREATE TABLE public.oscars (
+    oscarsid numeric(10) NOT NULL,
+    best_picture boolean,
+    best_director boolean,
+    best_actor boolean,
+    best_actress boolean,
+    best_supporting_actor boolean,
+    best_supporting_actress boolean,
+    best_original_screenplay boolean,
+    best_adapted_screenplay boolean,
+    best_cinematography boolean,
+    best_costume_design boolean,
+    best_film_editing boolean,
+    best_visual_effects boolean,
+    best_original_score boolean,
+    best_original_song boolean,
+    best_production_design boolean,
+    best_makeup_and_hairstyling boolean,
+    best_sound_editing boolean,
+    best_sound_mixing boolean,
+    best_foreign_language_film boolean,
+    best_animated_feature_film boolean,
+    best_documentary_feature boolean,
+    best_documentary_short_subject boolean,
+    best_animated_short_film boolean,
+    best_live_action_short_film boolean,
+    CONSTRAINT oscarsid_pk PRIMARY KEY (oscarsid)
+);
+
+CREATE INDEX oscarsid_index ON public.oscars
+USING btree ( oscarsid ) INCLUDE (oscarsid);
+
 -- **************************************** --
 -- CREATE View                              --
 -- **************************************** --
@@ -232,8 +264,10 @@ CREATE VIEW public.webapplication_mobileapp_view AS SELECT
    public.ticket_reservation.price,
    public.ticket.barcode,
    public.seat_reservation.seat_zone,
-   public.scheduling.date,
-   public.scheduling."time",
+   public.scheduling.start_date,
+   public.scheduling.start_time,
+   public.scheduling.end_date,
+   public.scheduling.end_time,
    public.customer.email,
    public.customer.first_name,
    public.customer.last_name,
@@ -244,6 +278,8 @@ FROM
    public.ticket_reservation,
    public.ticket,
    public.seat_reservation,
+   public.scheduling,
+   public.scheduling,
    public.scheduling,
    public.scheduling,
    public.customer,
@@ -257,15 +293,20 @@ CREATE VIEW public.sales_terminal_cp AS SELECT
    public.ticket_reservation.price,
    public.ticket.barcode,
    public.seat_reservation.seat_zone,
-   public.scheduling.date,
-   public.scheduling."time"
+   public.scheduling.start_date,
+   public.scheduling.start_time,
+   public.scheduling.end_date,
+   public.scheduling.end_time
 FROM
    public.ticket_reservation,
    public.ticket_reservation,
    public.ticket,
    public.seat_reservation,
    public.scheduling,
+   public.scheduling,
+   public.scheduling,
    public.scheduling;
+
 
 CREATE VIEW public.hall_attendant_view AS SELECT public.ticket.barcode FROM public.ticket;
 
@@ -324,6 +365,10 @@ ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 ALTER TABLE public.cast_or_director ADD CONSTRAINT cast_fk FOREIGN KEY (castid)
 REFERENCES public."cast" (castid) MATCH SIMPLE
+ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+ALTER TABLE public.movie ADD CONSTRAINT oscars_fk FOREIGN KEY (oscarsid)
+REFERENCES public.oscars (oscarsid) MATCH SIMPLE
 ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- **************************************** --

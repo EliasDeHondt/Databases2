@@ -119,20 +119,41 @@ VALUES
     (10, 'pre-roll10.mp4', 'Local Community Spotlight');
 
 -- **************************************** --
+-- INSERT Oscars                            --
+-- **************************************** --
+INSERT INTO public.oscars (
+    oscarsid, best_picture, best_director, best_actor, best_actress, best_supporting_actor, best_supporting_actress,
+    best_original_screenplay, best_adapted_screenplay, best_cinematography, best_costume_design, best_film_editing,
+    best_visual_effects, best_original_score, best_original_song, best_production_design, best_makeup_and_hairstyling,
+    best_sound_editing, best_sound_mixing, best_foreign_language_film, best_animated_feature_film,
+    best_documentary_feature, best_documentary_short_subject, best_animated_short_film, best_live_action_short_film
+) VALUES
+      (1, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false),
+      (2, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false),
+      (3, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false),
+      (4, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false),
+      (5, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false),
+      (6, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false),
+      (7, false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false),
+      (8, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false),
+      (9, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false),
+      (10, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false);
+
+-- **************************************** --
 -- INSERT Movie                             --
 -- **************************************** --
-INSERT INTO public.movie ("movieId", "pre-rollid", cast_or_directorid, title, genre, duration, children_allowed, movie_company, country_of_origin, oscar_best_actor, oscar_best_music, oscar_best_director, archive)
+INSERT INTO public.movie ("movieId", "pre-rollid", cast_or_directorid, oscarsid, title, genre, duration, children_allowed, movie_company, country_of_origin, archive)
 VALUES
-    (1, 1, 1, 'Inception', 'science_fiction', '02:28:00', false, 'Warner Bros.', 'USA', true, true, true, false),
-    (2, 2, 2, 'Jurassic Park', 'drama', '02:07:00', true, 'Universal Pictures', 'USA', false, false, true, false),
-    (3, 3, 3, 'Pulp Fiction', 'drama', '02:34:00', false, 'Miramax Films', 'USA', true, false, true, true),
-    (4, 4, 4, 'Goodfellas', 'drama', '02:26:00', false, 'Warner Bros.', 'USA', false, false, false, true),
-    (5, 5, 5, 'Little Women', 'drama', '02:14:00', true, 'Columbia Pictures', 'USA', false, false, false, true),
-    (6, 6, 6, 'Lost in Translation', 'drama', '01:42:00', false, 'Focus Features', 'USA', false, false, true, true),
-    (7, 7, 7, 'Fight Club', 'drama', '02:19:00', false, '20th Century Fox', 'USA', false, false, false, false),
-    (8, 8, 8, 'Selma', 'fantasy', '02:08:00', false, 'Paramount Pictures', 'USA', true, true, false, true),
-    (9, 9, 9, 'The Grand Budapest Hotel', 'comedy', '01:39:00', false, 'Fox Searchlight Pictures', 'USA', false, false, false, true),
-    (10, 10, 10, 'Do the Right Thing', 'actiefilm', '02:00:00', false, 'Universal Pictures', 'USA', false, false, true, true);
+    (1, 1, 1, 1,'Inception', 'science_fiction', '02:28:00', false, 'Warner Bros.', 'USA', false),
+    (2, 2, 2, 2,'Jurassic Park', 'drama', '02:07:00', true, 'Universal Pictures', 'USA', false),
+    (3, 3, 3, 3,'Pulp Fiction', 'drama', '02:34:00', false, 'Miramax Films', 'USA', true),
+    (4, 4, 4, 4,'Goodfellas', 'drama', '02:26:00', false, 'Warner Bros.', 'USA', true),
+    (5, 5, 5, 5,'Little Women', 'drama', '02:14:00', true, 'Columbia Pictures', 'USA', true),
+    (6, 6, 6, 6,'Lost in Translation', 'drama', '01:42:00', false, 'Focus Features', 'USA', true),
+    (7, 7, 7, 7,'Fight Club', 'drama', '02:19:00', false, '20th Century Fox', 'USA', false),
+    (8, 8, 8, 8,'Selma', 'fantasy', '02:08:00', false, 'Paramount Pictures', 'USA', true),
+    (9, 9, 9, 9,'The Grand Budapest Hotel', 'comedy', '01:39:00', false, 'Fox Searchlight Pictures', 'USA', true),
+    (10, 10, 10, 10,'Do the Right Thing', 'actiefilm', '02:00:00', false, 'Universal Pictures', 'USA', true);
 
 -- **************************************** --
 -- INSERT Reduced Rate                      --
@@ -153,18 +174,18 @@ VALUES
 -- **************************************** --
 -- INSERT Scheduling                        --
 -- **************************************** --
-INSERT INTO public.scheduling (schedulingid, complexid, movieid, date, "time")
+INSERT INTO public.scheduling (schedulingid, complexid, movieid, start_date, start_time, end_date, end_time)
 VALUES
-    (1, 1, 1, '2023-10-15', '14:00:00'),
-    (2, 2, 2, '2023-10-15', '15:30:00'),
-    (3, 3, 3, '2023-10-15', '16:00:00'),
-    (4, 4, 4, '2023-10-15', '18:00:00'),
-    (5, 5, 5, '2023-10-15', '19:30:00'),
-    (6, 6, 6, '2023-10-15', '20:00:00'),
-    (7, 7, 7, '2023-10-16', '14:00:00'),
-    (8, 8, 8, '2023-10-16', '15:30:00'),
-    (9, 9, 9, '2023-10-16', '16:00:00'),
-    (10, 10, 10, '2023-10-16', '18:00:00');
+    (1, 1, 1, '2023-10-15', '14:00:00','2023-10-15', '14:00:00'),
+    (2, 2, 2, '2023-10-15', '15:30:00','2023-10-15', '17:00:00'),
+    (3, 3, 3, '2023-10-15', '16:00:00','2023-10-15', '18:00:00'),
+    (4, 4, 4, '2023-10-15', '18:00:00','2023-10-15', '19:00:00'),
+    (5, 5, 5, '2023-10-15', '19:30:00','2023-10-15', '20:00:00'),
+    (6, 6, 6, '2023-10-15', '20:00:00','2023-10-15', '22:00:00'),
+    (7, 7, 7, '2023-10-16', '14:00:00','2023-10-16', '17:00:00'),
+    (8, 8, 8, '2023-10-16', '15:30:00','2023-10-16', '19:00:00'),
+    (9, 9, 9, '2023-10-16', '16:00:00','2023-10-16', '18:00:00'),
+    (10, 10, 10, '2023-10-16', '18:00:00','2023-10-16', '20:00:00');
 
 -- **************************************** --
 -- INSERT Ticket Reservation                --
