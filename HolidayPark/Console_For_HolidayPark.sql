@@ -286,3 +286,57 @@ SELECT last_name FROM clients WHERE clientNo = 1 FOR UPDATE NOWAIT; -- last_name
 
 SELECT last_name FROM clients WHERE clientNo = 1 FOR UPDATE NOWAIT; -- last_name = X
 COMMIT;
+
+
+-- W5P1
+SELECT * FROM pg_indexes WHERE schemaname = 'public';
+SELECT * FROM pg_indexes WHERE tablename = 'cottype_prices';
+ALTER TABLE cottype_prices DROP CONSTRAINT pk_cottype_prices;
+ALTER TABLE cottype_prices ADD CONSTRAINT pk_cottype_prices PRIMARY KEY (park_code, typeno, season_code);
+DROP INDEX IF EXISTS pk_cottype_prices; -- Dit kan niet omdat het een primary key is
+SELECT spcname AS "Tablespace Name", pg_tablespace_location(oid) AS "Location" FROM pg_tablespace;
+CREATE TABLESPACE testTabelSpace LOCATION 'C:\Program Files\PostgreSQL\15\data\testTabelSpace';
+
+CREATE TABLE clients_copy AS TABLE clients;
+SELECT indexname, tablename FROM pg_indexes WHERE tablename = 'clients';
+SELECT indexname, tablename FROM pg_indexes WHERE tablename = 'clients_copy';
+SELECT * FROM clients_copy;
+CREATE INDEX idx_client_name_copy ON clients_copy (clientno);
+SELECT * FROM pg_tablespace;
+CREATE TABLESPACE testTabelSpace LOCATION 'C:\Program Files\PostgreSQL\15\data\testTabelSpace';
+ALTER TABLE clients_copy SET TABLESPACE testTabelSpace;
+SELECT * FROM pg_tables WHERE tablename = 'clients_copy';
+SELECT indexname, tablespace FROM pg_indexes WHERE tablename = 'clients_copy';
+EXPLAIN SELECT * FROM clients WHERE clientNo = '77777';
+CREATE INDEX ind_fname_client ON clients (first_name);
+EXPLAIN SELECT clientNo,first_name,last_name FROM clients WHERE first_name IS NULL;
+EXPLAIN SELECT * FROM clients WHERE first_name='WILLY';
+EXPLAIN SELECT clientNo, first_name,last_name FROM clients WHERE UPPER(first_name) = 'WILLY';
+EXPLAIN SELECT * FROM clients WHERE first_name LIKE '%TH%';
+SET enable_seqscan = off;
+EXPLAIN SELECT clientNo,first_name,last_name FROM clients WHERE first_name IS NULL;
+EXPLAIN SELECT * FROM clients WHERE first_name='WILLY';
+EXPLAIN SELECT clientNo, first_name,last_name FROM clients WHERE UPPER(first_name) = 'WILLY';
+EXPLAIN SELECT * FROM clients WHERE first_name LIKE '%TH%';
+EXPLAIN SELECT * FROM cottages WHERE houseNo = 10;
+EXPLAIN SELECT * FROM cottages WHERE houseNo = 10 AND typeNo= '62';
+EXPLAIN SELECT park_code,typeNo, houseNo FROM cottages WHERE park_code='EP';
+CREATE INDEX ind_lname_client ON clients (last_name);
+EXPLAIN SELECT * FROM clients WHERE last_name ='STOOT';
+EXPLAIN SELECT * FROM clients WHERE UPPER(last_name)='STOOT';
+CREATE INDEX ind_upper_last_name_client ON clients (UPPER(last_name));
+SET enable_seqscan = on;
+SELECT indexname FROM pg_indexes WHERE tablename = 'reservations' AND indexname = 'ind_client_res';
+CREATE INDEX ind_client_res ON reservations (clientNo);
+EXPLAIN SELECT clientNo, COUNT(*) AS aantal_reservaties FROM reservations GROUP BY clientNo ORDER BY clientNo;
+DROP INDEX ind_fname_client;
+DROP INDEX ind_lname_client;
+DROP INDEX ind_client_res;
+EXPLAIN SELECT c.clientNo, c.first_name,c.last_name FROM clients c JOIN reservations r ON r.clientNo = c.clientNo;
+EXPLAIN SELECT c.clientNo, c.first_name,c.last_name FROM reservations r JOIN clients c ON c.clientNo = r.clientNo;
+EXPLAIN SELECT c.last_name, c.first_name,p.sport, p.park_name, r.typeNo, r.houseNo FROM reservations r JOIN clients c ON c.clientNo = r.clientNo JOIN parks p ON p.code = r.park_code WHERE p.country_code = '1';
+EXPLAIN SELECT pa.park_code,pa.attraction_code,pat.description FROM parkattractions pa JOIN parkattractiontypes pat ON pa.attraction_code = pat.attraction_code;
+EXPLAIN SELECT t.park_code,t.typeNo, no_persons, houseNo,central FROM cottagetypes t JOIN cottages c ON c.park_code=t.park_code AND c.typeNo=t.typeNo;
+EXPLAIN SELECT * FROM travelagencies WHERE taNo NOT IN (SELECT taNo FROM reservations);
+EXPLAIN SELECT * FROM travelagencies t WHERE NOT EXISTS (SELECT 'x' FROM reservations WHERE t.taNo = taNo);
+EXPLAIN SELECT t.taNo FROM travelagencies t EXCEPT (SELECT r.taNo FROM reservations r);
