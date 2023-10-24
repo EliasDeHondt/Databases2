@@ -19,10 +19,10 @@ DROP TABLE IF EXISTS public.seat_reservation CASCADE;               -- Table: se
 DROP TABLE IF EXISTS public.ticket CASCADE;                         -- Table: ticket
 DROP TABLE IF EXISTS public.movie CASCADE;                          -- Table: movie
 DROP TABLE IF EXISTS public.reduced_rate CASCADE;                   -- Table: reduced_rate
-DROP TABLE IF EXISTS public."pre-roll" CASCADE;                     -- Table: pre-roll
-DROP TABLE IF EXISTS public."cast" CASCADE;                         -- Table: cast
+DROP TABLE IF EXISTS public.pre_roll CASCADE;                       -- Table: pre-roll
+DROP TABLE IF EXISTS public.ensemble CASCADE;                       -- Table: ensemble
 DROP TABLE IF EXISTS public.director CASCADE;                       -- Table: director
-DROP TABLE IF EXISTS public.cast_or_director CASCADE;               -- Table: cast_or_director
+DROP TABLE IF EXISTS public.ensemble_or_director CASCADE;           -- Table: ensemble_or_director
 
 -- **************************************** --
 -- DROP View                                --
@@ -46,66 +46,64 @@ DROP TYPE IF EXISTS public.movie_genre CASCADE;                     -- Type: mov
 -- CREATE Tables                            --
 -- **************************************** --
 CREATE TABLE public.cinema_complex (
-	complexid numeric(2) NOT NULL,
-	name varchar(25),
-	house_nr numeric(3),
-	zip_code numeric(4),
-	street_name varchar(25),
-	ticket_sales_points numeric(2),
-	CONSTRAINT cinema_complexes_pk PRIMARY KEY (complexid)
+    complexid numeric(2, 0) NOT NULL,
+    name varchar(50) NOT NULL,
+    house_nr numeric(4, 0),
+    zip_code numeric(5, 0),
+    street_name varchar(50) NOT NULL,
+    ticket_sales_points numeric(2) CHECK (ticket_sales_points >= 0), -- Ticket sales points must be positive
+    CONSTRAINT cinema_complexes_pk PRIMARY KEY (complexid), -- Primary key
+    CONSTRAINT cinema_complex_name_uk UNIQUE (name) -- Name must be unique
 );
 
-CREATE INDEX complexid_index ON public.cinema_complex
-USING btree ( complexid );
+CREATE INDEX complexid_index ON public.cinema_complex USING btree ( complexid );
 
 CREATE TABLE public.hall (
-	hallid numeric(2) NOT NULL,
-	complexid numeric(2),
-	capacity numeric(4),
-	characteristics varchar(25),
-	CONSTRAINT halls_pk PRIMARY KEY (hallid)
+    hallid numeric(2, 0) NOT NULL,
+    complexid numeric(2, 0),
+    capacity numeric(4, 0),
+    characteristics varchar(50),
+    CONSTRAINT halls_pk PRIMARY KEY (hallid), -- Primary key
+    CHECK (capacity >= 0) -- Capacity must be positive
 );
 
-CREATE INDEX hallid_index ON public.hall
-USING btree ( hallid );
+CREATE INDEX hallid_index ON public.hall USING btree ( hallid );
 
 CREATE TYPE public.type AS ENUM ('3d','dutch_translation','dutch_subtitles','uhd');
 
 CREATE TABLE public.version (
-	versionid numeric(4) NOT NULL,
-	movieid numeric(10),
-	rateid numeric(2),
-	type public.type,
-	surcharge numeric(8),
-	CONSTRAINT versions_pk PRIMARY KEY (versionid)
+    versionid numeric(4, 0) NOT NULL,
+    movieid numeric(10, 0),
+    rateid numeric(2, 0),
+    type public.type NOT NULL,
+    surcharge numeric(8, 2) CHECK (surcharge >= 0), -- Surcharge must be positive
+    CONSTRAINT versions_pk PRIMARY KEY (versionid) -- Primary key
 );
 
 CREATE TABLE public.scheduling (
 	schedulingid numeric(10) NOT NULL,
 	complexid numeric(2),
 	movieid numeric(10),
-	start_date date,
-	start_time time,
-    end_date date,
-    end_time time,
+	start_date date NOT NULL,
+	start_time time NOT NULL,
+    end_date date NOT NULL,
+    end_time time NOT NULL,
 	CONSTRAINT scheduling_pk PRIMARY KEY (schedulingid)
 );
 
-CREATE INDEX schedulingid ON public.scheduling
-USING btree ( schedulingid );
+CREATE INDEX schedulingid ON public.scheduling USING btree ( schedulingid );
 
 CREATE TABLE public.customer (
 	customerid numeric(10) NOT NULL,
 	first_name varchar(50),
 	last_name varchar(50),
-	email varchar(50),
-	username varchar(50),
-	password varchar(50),
+	email varchar(50) NOT NULL,
+	username varchar(50) NOT NULL,
+	password varchar(50) NOT NULL,
 	CONSTRAINT customers_pk PRIMARY KEY (customerid)
 );
 
-CREATE INDEX customerid_index ON public.customer
-USING btree ( customerid );
+CREATE INDEX customerid_index ON public.customer USING btree ( customerid );
 
 CREATE TYPE public.payment_method AS ENUM ('maestro','mastercard','visa','cash');
 
@@ -114,8 +112,8 @@ CREATE TABLE public.ticket_reservation (
 	customerid numeric(10),
 	schedulingid numeric(10),
 	confirmation_email_sent boolean,
-	payment_method public.payment_method,
-	price numeric(5,2) CHECK ( price > 0 ),
+	payment_method public.payment_method NOT NULL,
+	price numeric(5,2) CHECK ( price > 0 ) NOT NULL,
 	CONSTRAINT ticket_reservations_pk PRIMARY KEY (reservationid)
 );
 
@@ -136,240 +134,184 @@ CREATE TABLE public.ticket (
 	CONSTRAINT tickets_pk PRIMARY KEY (ticketid)
 );
 
-CREATE INDEX ticketid_index ON public.ticket
-USING btree ( ticketid );
+CREATE INDEX ticketid_index ON public.ticket USING btree ( ticketid );
 
-CREATE INDEX versionid_index ON public.version
-USING btree ( versionid );
+CREATE INDEX versionid_index ON public.version USING btree ( versionid );
 
-CREATE INDEX reservationid_index ON public.ticket_reservation
-USING btree ( reservationid );
+CREATE INDEX reservationid_index ON public.ticket_reservation USING btree ( reservationid );
 
-CREATE INDEX seatreservationid_index ON public.seat_reservation
-USING btree ( seat_reservationid );
+CREATE INDEX seatreservationid_index ON public.seat_reservation USING btree ( seat_reservationid );
 
 CREATE TYPE public.customer_type AS ENUM ('students','retirees','disabled');
 
 CREATE TYPE public.movie_genre AS ENUM ('romantisch','actiefilm','science_fiction','drama','comedy','thriller','fantasy');
 
 CREATE TABLE public.movie (
-	"movieId" numeric(10) NOT NULL,
-	"pre-rollid" numeric(3),
-	cast_or_directorid numeric(8),
+	movieId numeric(10) NOT NULL,
+    pre_rollid numeric(3),
+	ensemble_or_directorid numeric(8),
     oscarsid numeric(10),
 	title varchar(25),
 	genre public.movie_genre,
 	duration time(2),
 	children_allowed boolean,
 	movie_company varchar(25),
-	country_of_origin varchar(25),
+	country_of_origin varchar(25) NOT NULL,
 	archive boolean,
-	CONSTRAINT movies_pk PRIMARY KEY ("movieId")
+	CONSTRAINT movies_pk PRIMARY KEY (movieId)
 );
 
 CREATE TABLE public.reduced_rate (
 	rateid numeric(2) NOT NULL,
-	discount_percentage numeric(5,2),
+    discount_percentage numeric(5,2) CHECK (discount_percentage >= 0),
 	customer_type public.customer_type,
 	CONSTRAINT rateid_pk PRIMARY KEY (rateid)
 );
 
-CREATE INDEX rateid_index ON public.reduced_rate
-USING btree ( rateid );
+CREATE INDEX rateid_index ON public.reduced_rate USING btree ( rateid );
 
-CREATE INDEX movieid_index ON public.movie
-USING btree ( "movieId" );
+CREATE INDEX movieid_index ON public.movie USING btree ( movieId );
 
-CREATE TABLE public."pre-roll" (
-	"pre-rollid" numeric(3) NOT NULL,
-	trailer varchar(25),
-	description varchar(50),
-	CONSTRAINT "pre-roll_pk" PRIMARY KEY ("pre-rollid")
+CREATE TABLE public.pre_roll (
+    pre_rollid numeric(3) NOT NULL,
+	trailer varchar(100) NOT NULL,
+	description TEXT,
+	CONSTRAINT "pre-roll_pk" PRIMARY KEY (pre_rollid)
 );
 
-CREATE INDEX "pre-rollid_index" ON public."pre-roll"
-USING btree ( "pre-rollid" );
+CREATE INDEX pre_rollid_index ON public.pre_roll USING btree ( pre_rollid );
 
-CREATE TABLE public."cast" (
-	castid numeric(8) NOT NULL,
-	first_name varchar(25),
-	last_name varchar(25),
-	role varchar(25),
-	CONSTRAINT cast_pk PRIMARY KEY (castid)
+CREATE TABLE public.ensemble (
+	ensembleid numeric(8) NOT NULL,
+	first_name varchar(50) NOT NULL,
+	last_name varchar(50) NOT NULL,
+	role varchar(50),
+	CONSTRAINT ensemble_pk PRIMARY KEY (ensembleid)
 );
 
-CREATE INDEX castid_index ON public."cast"
-USING btree ( castid );
+CREATE INDEX ensembleid_index ON public.ensemble USING btree ( ensembleid );
 
 CREATE TABLE public.director (
 	directorid numeric(8) NOT NULL,
-	first_name varchar(25),
-	last_name varchar(25),
-	function varchar(25),
+    first_name varchar(50) NOT NULL,
+    last_name varchar(50) NOT NULL,
+	function varchar(50),
 	CONSTRAINT "director_PK" PRIMARY KEY (directorid)
 );
 
-CREATE INDEX directorid_index ON public.director
-USING btree ( directorid );
+CREATE INDEX directorid_index ON public.director USING btree ( directorid );
 
-CREATE TABLE public.cast_or_director (
-	cast_or_directorid numeric(8) NOT NULL,
+CREATE TABLE public.ensemble_or_director (
+	ensemble_or_directorid numeric(8) NOT NULL,
 	directorid numeric(8),
-	castid numeric(8),
-	CONSTRAINT cast_or_director_pk PRIMARY KEY (cast_or_directorid)
+	ensembleid numeric(8),
+	CONSTRAINT ensemble_or_director_pk PRIMARY KEY (ensemble_or_directorid)
 );
 
-CREATE INDEX cast_or_directorid_index ON public.cast_or_director
-USING btree ( cast_or_directorid );
+CREATE INDEX ensemble_or_directorid_index ON public.ensemble_or_director USING btree ( ensemble_or_directorid );
+
+CREATE TYPE public.oscar_category AS ENUM ('best_picture','best_director','best_actor','best_actress','best_supporting_actor','best_supporting_actress','best_original_screenplay','best_adapted_screenplay','best_cinematography','best_costume_design','best_film_editing','best_visual_effects','best_original_score','best_original_song','best_production_design','best_makeup_and_hairstyling','best_sound_editing','best_sound_mixing','best_foreign_language_film','best_animated_feature_film','best_documentary_feature','best_documentary_short_subject','best_animated_short_film','best_live_action_short_film');
 
 CREATE TABLE public.oscars (
     oscarsid numeric(10) NOT NULL,
-    best_picture boolean,
-    best_director boolean,
-    best_actor boolean,
-    best_actress boolean,
-    best_supporting_actor boolean,
-    best_supporting_actress boolean,
-    best_original_screenplay boolean,
-    best_adapted_screenplay boolean,
-    best_cinematography boolean,
-    best_costume_design boolean,
-    best_film_editing boolean,
-    best_visual_effects boolean,
-    best_original_score boolean,
-    best_original_song boolean,
-    best_production_design boolean,
-    best_makeup_and_hairstyling boolean,
-    best_sound_editing boolean,
-    best_sound_mixing boolean,
-    best_foreign_language_film boolean,
-    best_animated_feature_film boolean,
-    best_documentary_feature boolean,
-    best_documentary_short_subject boolean,
-    best_animated_short_film boolean,
-    best_live_action_short_film boolean,
+    oscar_category public.oscar_category,
+    winner boolean,
+    nominee varchar(100),
     CONSTRAINT oscarsid_pk PRIMARY KEY (oscarsid)
 );
 
-CREATE INDEX oscarsid_index ON public.oscars
-USING btree ( oscarsid ) INCLUDE (oscarsid);
+CREATE INDEX oscarsid_index ON public.oscars USING btree ( oscarsid ) INCLUDE (oscarsid);
 
 -- **************************************** --
 -- CREATE View                              --
 -- **************************************** --
 CREATE VIEW public.programming_managers_view AS SELECT public.scheduling.* FROM public.scheduling;
 
-CREATE VIEW public.webapplication_mobileapp_view AS SELECT
-   public.ticket_reservation.payment_method,
-   public.ticket_reservation.price,
-   public.ticket.barcode,
-   public.seat_reservation.seat_zone,
-   public.scheduling.start_date,
-   public.scheduling.start_time,
-   public.scheduling.end_date,
-   public.scheduling.end_time,
-   public.customer.email,
-   public.customer.first_name,
-   public.customer.last_name,
-   public.customer.password,
-   public.customer.username
-FROM
-   public.ticket_reservation,
-   public.ticket_reservation,
-   public.ticket,
-   public.seat_reservation,
-   public.scheduling,
-   public.scheduling,
-   public.scheduling,
-   public.scheduling,
-   public.customer,
-   public.customer,
-   public.customer,
-   public.customer,
-   public.customer;
+CREATE VIEW public.webapplication_mobileapp_view AS
+SELECT
+    tr.payment_method,
+    tr.price,
+    t.barcode,
+    sr.seat_zone,
+    s.start_date,
+    s.start_time,
+    s.end_date,
+    s.end_time,
+    c.email,
+    c.first_name,
+    c.last_name,
+    c.password,
+    c.username
+FROM public.ticket_reservation tr
+    JOIN public.ticket t ON tr.reservationid = t.reservationid
+    JOIN public.seat_reservation sr ON t.ticketid = sr.reservationid
+    JOIN public.scheduling s ON sr.seat_reservationid = s.schedulingid
+    JOIN public.customer c ON tr.customerid = c.customerid;
 
-CREATE VIEW public.sales_terminal_cp AS SELECT
-   public.ticket_reservation.payment_method,
-   public.ticket_reservation.price,
-   public.ticket.barcode,
-   public.seat_reservation.seat_zone,
-   public.scheduling.start_date,
-   public.scheduling.start_time,
-   public.scheduling.end_date,
-   public.scheduling.end_time
-FROM
-   public.ticket_reservation,
-   public.ticket_reservation,
-   public.ticket,
-   public.seat_reservation,
-   public.scheduling,
-   public.scheduling,
-   public.scheduling,
-   public.scheduling;
+CREATE VIEW public.sales_terminal_cp AS
+SELECT
+    tr.payment_method,
+    tr.price,
+    t.barcode,
+    sr.seat_zone,
+    s.start_date,
+    s.start_time,
+    s.end_date,
+    s.end_time
+FROM public.ticket_reservation tr
+    JOIN public.ticket t ON tr.reservationid = t.reservationid
+    JOIN public.seat_reservation sr ON t.ticketid = sr.reservationid
+    JOIN public.scheduling s ON sr.seat_reservationid = s.schedulingid;
 
 
 CREATE VIEW public.hall_attendant_view AS SELECT public.ticket.barcode FROM public.ticket;
 
-CREATE VIEW public.content_managers_view AS SELECT public."pre-roll".* FROM public."pre-roll";
+CREATE VIEW public.content_managers_view AS SELECT public.pre_roll.* FROM public.pre_roll;
 
 -- **************************************** --
 -- CREATE Constraint                        --
 -- **************************************** --
 ALTER TABLE public.hall ADD CONSTRAINT cinema_complexes_fk FOREIGN KEY (complexid)
-REFERENCES public.cinema_complex (complexid) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+REFERENCES public.cinema_complex (complexid) MATCH SIMPLE ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 ALTER TABLE public.version ADD CONSTRAINT movieid_fk FOREIGN KEY (movieid)
-REFERENCES public.movie ("movieId") MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+REFERENCES public.movie (movieId) MATCH SIMPLE ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 ALTER TABLE public.version ADD CONSTRAINT rateid FOREIGN KEY (rateid)
-REFERENCES public.reduced_rate (rateid) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+REFERENCES public.reduced_rate (rateid) MATCH SIMPLE ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 ALTER TABLE public.scheduling ADD CONSTRAINT cinema_complexes_fk FOREIGN KEY (complexid)
-REFERENCES public.cinema_complex (complexid) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+REFERENCES public.cinema_complex (complexid) MATCH SIMPLE ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 ALTER TABLE public.scheduling ADD CONSTRAINT movies_fk FOREIGN KEY (movieid)
-REFERENCES public.movie ("movieId") MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+REFERENCES public.movie (movieId) MATCH SIMPLE ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 ALTER TABLE public.ticket_reservation ADD CONSTRAINT customers_fk FOREIGN KEY (customerid)
-REFERENCES public.customer (customerid) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+REFERENCES public.customer (customerid) MATCH SIMPLE ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 ALTER TABLE public.ticket_reservation ADD CONSTRAINT scheduling_fk FOREIGN KEY (schedulingid)
-REFERENCES public.scheduling (schedulingid) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+REFERENCES public.scheduling (schedulingid) MATCH SIMPLE ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 ALTER TABLE public.seat_reservation ADD CONSTRAINT ticket_reservations_fk FOREIGN KEY (reservationid)
-REFERENCES public.ticket_reservation (reservationid) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+REFERENCES public.ticket_reservation (reservationid) MATCH SIMPLE ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 ALTER TABLE public.ticket ADD CONSTRAINT ticket_reservations_fk FOREIGN KEY (reservationid)
-REFERENCES public.ticket_reservation (reservationid) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+REFERENCES public.ticket_reservation (reservationid) MATCH SIMPLE ON DELETE NO ACTION ON UPDATE NO ACTION;
 
-ALTER TABLE public.movie ADD CONSTRAINT "pre-rollid_fk" FOREIGN KEY ("pre-rollid")
-REFERENCES public."pre-roll" ("pre-rollid") MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE public.movie ADD CONSTRAINT pre_rollid_fk FOREIGN KEY (pre_rollid)
+REFERENCES public.pre_roll (pre_rollid) MATCH SIMPLE ON DELETE NO ACTION ON UPDATE NO ACTION;
 
-ALTER TABLE public.movie ADD CONSTRAINT cast_or_director_fk FOREIGN KEY (cast_or_directorid)
-REFERENCES public.cast_or_director (cast_or_directorid) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE public.movie ADD CONSTRAINT ensemble_or_director_fk FOREIGN KEY (ensemble_or_directorid)
+REFERENCES public.ensemble_or_director (ensemble_or_directorid) MATCH SIMPLE ON DELETE NO ACTION ON UPDATE NO ACTION;
 
-ALTER TABLE public.cast_or_director ADD CONSTRAINT director_fk FOREIGN KEY (directorid)
-REFERENCES public.director (directorid) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE public.ensemble_or_director ADD CONSTRAINT director_fk FOREIGN KEY (directorid)
+REFERENCES public.director (directorid) MATCH SIMPLE ON DELETE NO ACTION ON UPDATE NO ACTION;
 
-ALTER TABLE public.cast_or_director ADD CONSTRAINT cast_fk FOREIGN KEY (castid)
-REFERENCES public."cast" (castid) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE public.ensemble_or_director ADD CONSTRAINT ensemble_fk FOREIGN KEY (ensembleid)
+REFERENCES public.ensemble (ensembleid) MATCH SIMPLE ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 ALTER TABLE public.movie ADD CONSTRAINT oscars_fk FOREIGN KEY (oscarsid)
-REFERENCES public.oscars (oscarsid) MATCH SIMPLE
-ON DELETE NO ACTION ON UPDATE NO ACTION;
+REFERENCES public.oscars (oscarsid) MATCH SIMPLE ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 -- **************************************** --
 -- CREATE Users                             --

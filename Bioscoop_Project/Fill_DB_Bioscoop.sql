@@ -39,9 +39,9 @@ VALUES
     (10, 5, 110, '3D');
 
 -- **************************************** --
--- INSERT Cast                              --
+-- INSERT Ensemble                          --
 -- **************************************** --
-INSERT INTO public."cast" (castid, first_name, last_name, role)
+INSERT INTO public.ensemble (ensembleid, first_name, last_name, role)
 VALUES
     (1, 'John', 'Doe', 'Lead Actor'),
     (2, 'Jane', 'Smith', 'Supporting Actress'),
@@ -71,9 +71,9 @@ VALUES
     (10, 'Spike', 'Lee', 'Director');
 
 -- **************************************** --
--- INSERT Cast Or Director                  --
+-- INSERT Ensemble Or Director              --
 -- **************************************** --
-INSERT INTO public.cast_or_director (cast_or_directorid, directorid, castid)
+INSERT INTO public.ensemble_or_director (ensemble_or_directorid, directorid, ensembleid)
 VALUES
     (1, 1, 2), -- John Doe directed Jane Smith
     (2, 1, 3), -- John Doe directed Michael Johnson
@@ -105,7 +105,7 @@ VALUES
 -- **************************************** --
 -- INSERT Pre-roll                          --
 -- **************************************** --
-INSERT INTO public."pre-roll" ("pre-rollid", trailer, description)
+INSERT INTO public.pre_roll (pre_rollid, trailer, description)
 VALUES
     (1, 'pre-roll1.mp4', 'Exciting Upcoming Movies'),
     (2, 'pre-roll2.mp4', 'Special Offers and Promotions'),
@@ -121,28 +121,24 @@ VALUES
 -- **************************************** --
 -- INSERT Oscars                            --
 -- **************************************** --
-INSERT INTO public.oscars (
-    oscarsid, best_picture, best_director, best_actor, best_actress, best_supporting_actor, best_supporting_actress,
-    best_original_screenplay, best_adapted_screenplay, best_cinematography, best_costume_design, best_film_editing,
-    best_visual_effects, best_original_score, best_original_song, best_production_design, best_makeup_and_hairstyling,
-    best_sound_editing, best_sound_mixing, best_foreign_language_film, best_animated_feature_film,
-    best_documentary_feature, best_documentary_short_subject, best_animated_short_film, best_live_action_short_film
-) VALUES
-      (1, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false),
-      (2, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false),
-      (3, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false),
-      (4, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false),
-      (5, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false),
-      (6, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false, false, false),
-      (7, false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false, false, false),
-      (8, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false, false, false),
-      (9, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false, false, false),
-      (10, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, true, false, false, false, false);
+INSERT INTO public.oscars (oscarsid, oscar_category, winner, nominee)
+VALUES
+    (1, 'best_picture', true, 'The Masterpiece'),
+    (2, 'best_director', true, 'Visionary Director'),
+    (3, 'best_actor', true, 'Outstanding Actor'),
+    (4, 'best_actress', true, 'Talented Actress'),
+    (5, 'best_supporting_actor', true, 'Exceptional Supporting Actor'),
+    (6, 'best_supporting_actor', true, 'Remarkable Supporting Actor'),
+    (7, 'best_supporting_actor', true, 'Incredible Supporting Actor'),
+    (8, 'best_supporting_actor', true, 'Outstanding Supporting Actor'),
+    (9, 'best_supporting_actor', true, 'Exceptional Supporting Actor'),
+    (10, 'best_supporting_actor', true, 'Talented Supporting Actor');
+
 
 -- **************************************** --
 -- INSERT Movie                             --
 -- **************************************** --
-INSERT INTO public.movie ("movieId", "pre-rollid", cast_or_directorid, oscarsid, title, genre, duration, children_allowed, movie_company, country_of_origin, archive)
+INSERT INTO public.movie (movieId, pre_rollid, ensemble_or_directorid, oscarsid, title, genre, duration, children_allowed, movie_company, country_of_origin, archive)
 VALUES
     (1, 1, 1, 1,'Inception', 'science_fiction', '02:28:00', false, 'Warner Bros.', 'USA', false),
     (2, 2, 2, 2,'Jurassic Park', 'drama', '02:07:00', true, 'Universal Pictures', 'USA', false),
