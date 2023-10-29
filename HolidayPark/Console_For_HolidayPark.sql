@@ -340,3 +340,24 @@ EXPLAIN SELECT t.park_code,t.typeNo, no_persons, houseNo,central FROM cottagetyp
 EXPLAIN SELECT * FROM travelagencies WHERE taNo NOT IN (SELECT taNo FROM reservations);
 EXPLAIN SELECT * FROM travelagencies t WHERE NOT EXISTS (SELECT 'x' FROM reservations WHERE t.taNo = taNo);
 EXPLAIN SELECT t.taNo FROM travelagencies t EXCEPT (SELECT r.taNo FROM reservations r);
+
+-- W6P1
+SELECT table_name FROM information_schema.columns;
+SELECT tablename FROM pg_tables;
+SELECT table_name FROM information_schema.columns INTERSECT SELECT tablename FROM pg_tables;
+CREATE SEQUENCE test_sequentie START 1 INCREMENT 1;
+SELECT currval('test_sequentie');
+SELECT last_value FROM test_sequentie;
+SELECT currval('test_sequentie');
+SELECT last_value FROM pg_sequences WHERE sequencename = 'test_sequentie';
+UPDATE pg_sequences SET increment_by = 5 WHERE sequencename = 'test_sequentie';
+SELECT * FROM pg_sequences;
+SELECT * FROM pg_sequence;
+SELECT table_name, table_type FROM information_schema.tables WHERE table_type= 'VIEW' AND table_catalog = 'HolidayPark';
+SELECT * FROM pg_locks;
+SELECT * FROM pg_class;
+SELECT oid, relname FROM pg_class WHERE oid IN (SELECT relation FROM pg_locks);
+BEGIN;
+SELECT * FROM countries;
+UPDATE countries SET country_name = 'Nederland' WHERE country_code = '2';
+ROLLBACK;
