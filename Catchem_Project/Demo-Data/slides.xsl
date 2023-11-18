@@ -7,8 +7,8 @@
 			<xsl:text>;</xsl:text>
 				<xsl:value-of select="normalize-space(v1)"/>
 			<xsl:text>;</xsl:text>
-				<xsl:value-of select="normalize-space(v2)"/>					
+				<xsl:value-of select="normalize-space(translate(v2, '.', ''))"/>					
 			<xsl:text>&#xa;</xsl:text>
-	</xsl:for-each>
-</xsl:template>
+		</xsl:for-each>
+	</xsl:template>
 </xsl:stylesheet>
