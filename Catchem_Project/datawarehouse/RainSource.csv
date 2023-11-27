@@ -1,0 +1,13 @@
+ID,Weather,WeatherType
+1,Thunderstorm,Rain
+2,Drizzle,Rain
+3,Rain,Rain
+4,Snow,Rain
+5,Mist,Rain
+6,Haze,Rain
+7,Clear,Not Rain
+8,Few Clouds,Not Rain
+9,Scattered Clouds,Not Rain
+10,Broken Clouds,Not Rain
+11,Overcast Clouds,Not Rain
+12,NULL,Unknown
