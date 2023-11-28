@@ -16,28 +16,13 @@ DROP TABLE TreasureFound;
 */
 
 /*********************************************************************/
-/********** Creation Additional Table, Operational Database **********/
-/*********************************************************************/
-CREATE TABLE "WeatherHistory" ( --  (Dit is geen dimensie!)
-    weather_history_key INT PRIMARY KEY,
-    hour INT,
-    day INT,
-    city VARCHAR(50),
-    wedderCode INT,
-    wederType VARCHAR(50),
-    humidity INT
-);
-/*********************************************************************/
-
-
-
-/*********************************************************************/
 /********************* Creation Of Datawarehouse *********************/
 /*********************************************************************/
 CREATE TABLE "dimDay" (
     dimDay_key INT PRIMARY KEY,
     date DATE,
     day INT,
+    hour INT,
     week INT,
     month INT,
     year INT,
@@ -85,6 +70,15 @@ CREATE TABLE "TreasureFound" (
     FOREIGN KEY (dimRain_key) REFERENCES "dimRain"(dimRain_key),
     FOREIGN KEY (dimTreasureType_key) REFERENCES "dimTreasureType"(dimTreasureType_key)
 );
+
+CREATE TABLE "WeatherHistory" ( --  (Dit is geen dimensie!)
+    city VARCHAR(100),
+    weatherCode INT,
+    weatherType VARCHAR(100),
+    humidity INT,
+    hour INT,
+    day INT
+);
 /*********************************************************************/
 
 
@@ -108,15 +102,12 @@ FROM treasure t
 LEFT JOIN treasure_stages ts ON t.id = ts.treasure_id
 WHERE t.id IN (SELECT treasure_id FROM treasure_log WHERE log_type = 2) -- 2 = found
 
+-- WeatherHistory
+SELECT TOP 10 latitude, longitude FROM city;
 
 -- TreasureFound
 SELECT dimDay_key FROM "dimDay";
 SELECT dimUser_key FROM "dimUser";
 SELECT dimRain_key FROM "dimRain";
 SELECT dimTreasureType_key FROM "dimTreasureType";
-
-SELECT * FROM "dimDay";
-SELECT * FROM "dimUser";
-SELECT * FROM "dimRain";
-SELECT * FROM "dimTreasureType";
 /*********************************************************************/
