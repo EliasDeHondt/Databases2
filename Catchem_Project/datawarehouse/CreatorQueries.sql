@@ -5,19 +5,22 @@
  *                                     *
  ***************************************/
 
--- Drop tables
-/*
-DROP TABLE WeatherHistory;
-DROP TABLE dimDay;
-DROP TABLE dimUser;
-DROP TABLE dimRain;
-DROP TABLE dimTreasureType;
-DROP TABLE TreasureFound;
-*/
+
 
 /*********************************************************************/
 /********************* Creation Of Datawarehouse *********************/
 /*********************************************************************/
+CREATE TABLE "weatherHistory" ( --  (Dit is geen dimensie!)
+    city VARCHAR(100),
+    weatherCode INT,
+    weatherType VARCHAR(100),
+    humidity INT,
+    hour INT,
+    day INT,
+    month INT,
+    year INT
+);
+
 CREATE TABLE "dimDay" (
     dimDay_key INT PRIMARY KEY,
     date DATE,
@@ -30,7 +33,7 @@ CREATE TABLE "dimDay" (
 );
 
 CREATE TABLE "dimUser" (
-    dimUser_key INT PRIMARY KEY,
+    dimUser_key BINARY(16) PRIMARY KEY,
     first_name VARCHAR(255),
     last_name VARCHAR(255),
     streetnumber INT,
@@ -52,62 +55,21 @@ CREATE TABLE "dimRain" (
 );
 
 CREATE TABLE "dimTreasureType" (
-    dimTreasureType_key INT PRIMARY KEY,
+    dimTreasureType_key INT,
     difficulty INT,
     terrain INT,
-    amountOfStages INT
+    size INT
 );
 
-CREATE TABLE "TreasureFound" (
-    TreasureFound_key INT PRIMARY KEY,
+CREATE TABLE "treasureFound" (
+    treasureFound_key INT PRIMARY KEY,
     dimDay_key INT,
     dimUser_key INT,
     dimRain_key INT,
     dimTreasureType_key INT,
-    
-    FOREIGN KEY (dimDay_key) REFERENCES "dimDay"(dimDay_key),
-    FOREIGN KEY (dimUser_key) REFERENCES "dimUser"(dimUser_key),
-    FOREIGN KEY (dimRain_key) REFERENCES "dimRain"(dimRain_key),
-    FOREIGN KEY (dimTreasureType_key) REFERENCES "dimTreasureType"(dimTreasureType_key)
+
+    defaultValue INT,
+    durationQuest VARCHAR(30),
+    creationDate DATETIME2(7)
 );
-
-CREATE TABLE "WeatherHistory" ( --  (Dit is geen dimensie!)
-    city VARCHAR(100),
-    weatherCode INT,
-    weatherType VARCHAR(100),
-    humidity INT,
-    hour INT,
-    day INT
-);
-/*********************************************************************/
-
-
-
-/*********************************************************************/
-/************************** Talend Queries ***************************/
-/*********************************************************************/
-
--- Dimension "User"
-SELECT id, first_name, last_name, number, street, 
-(SELECT city_name FROM city WHERE city_id = user_table.city_city_id) AS "City",
-(SELECT name FROM country WHERE code = (SELECT country_code FROM city WHERE city_id = user_table.city_city_id)) AS "Country",
-(SELECT COUNT(*) FROM treasure_log WHERE user_table.id = treasure_log.hunter_id) AS "ExperienceLevel",
-(SELECT COUNT(*) FROM treasure WHERE user_table.id = treasure.owner_id) AS "Dedicator"
-FROM user_table;
-
--- Dimension "TreasureType"
-SELECT DISTINCT t.difficulty, t.terrain,
-    (SELECT COUNT(ts2.stages_id) FROM treasure_stages ts2 WHERE ts2.treasure_id = t.id) AS "Amount Of Stages"
-FROM treasure t
-LEFT JOIN treasure_stages ts ON t.id = ts.treasure_id
-WHERE t.id IN (SELECT treasure_id FROM treasure_log WHERE log_type = 2) -- 2 = found
-
--- WeatherHistory
-SELECT TOP 10 latitude, longitude FROM city;
-
--- TreasureFound
-SELECT dimDay_key FROM "dimDay";
-SELECT dimUser_key FROM "dimUser";
-SELECT dimRain_key FROM "dimRain";
-SELECT dimTreasureType_key FROM "dimTreasureType";
 /*********************************************************************/

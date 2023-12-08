@@ -1,4 +1,4 @@
-![Alt-tekst](/images/Database%20warehouse%20icon.png)
+![database-warehouse-icon](/images/database-warehouse-icon.png)
 # Catchem - TreasureHunt System
 
 ## Introduction
@@ -65,111 +65,13 @@ How to deliver before a deadline?
 Delivery must take place at the following times.
 This means that at that moment you make a commit and push and provide that commit with a tag:
 - Tuesday 28/11 3:45 PM: tag `v1`
-- Tuesday 12/19 3:45 PM: tag `v2`
+- Tuesday 19/12 3:45 PM: tag `v2`
 - Sunday 7/01/2023 23:59: tag `v3`
 In addition to that commit, you must also always complete the reflection document `/reflection.md` and add it to the repository.
 
-
-## Analysis Optimization (optimalisatie dossier)
-### Index
-Indexering verbetert de ophaalsnelheid van gegevens door structuren te optimaliseren op basis van specifieke velden of kolommen.
-
-```sql
-SET STATISTICS TIME ON;
-GO
-
-SELECT experience_level, dedicator
-FROM dimUser
-WHERE dimUser_key = 0x00001CBFA8E546C1BAA621DE39F4E2D4;
-
-SET STATISTICS TIME OFF;
-GO
-```
-<br>
-
-| Experience Level | Dedicaton |
-|------------------|-----------|
-| Amateur          | No        |
-<br>
-
-- (Before index creation)
-  - Evidence
-
-  ![Alt-tekst](/images/before-index.png)
-
-
-- (After index creation)
-  - Index creation
-  ```sql
-  CREATE NONCLUSTERED INDEX dimUser_key_index
-  ON dimUser (dimUser_key);
-  ```
-
-  - Evidence
-  
-  ![Alt-tekst](/images/after-index.png)
-
-
-### Partitionering
-Partitioneren verdeelt grote databasetabellen in kleinere, beter beheersbare segmenten.
-
-- (Before partitionering)
-  - /
-
-- (After partitionering)
-  - /
-
-### Column storage
-Kolomopslag herstructureert de gegevensorganisatie door informatie op te slaan in kolommen in plaats van rijen, waardoor de prestaties van zoekopdrachten worden verbeterd, vooral voor analyses.
-
-- (Before column storage)
-  - /
-
-- (After column storage)
-  - /
-
-### Compressie
-Compressie minimaliseert de opslagvereisten door de gegevensgrootte te gebruiken met behulp van technieken zoals run-length-codering, woordenboekcodering of gzip-compressie.
-
-- (Before compression)
-  ```sql
-  SELECT OBJECT_NAME(object_id) AS "Table Name",
-    SUM(reserved_page_count) * 8 AS "Total Size KB",
-    SUM(reserved_page_count) * 8 / 1024.0 AS "Total Size MB"
-  FROM sys.dm_db_partition_stats
-  WHERE OBJECT_NAME(object_id) = 'dimUser'
-  GROUP BY object_id;
-  ```
-  | Table Name | Total Size KB | Total Size MB |
-  |------------|---------------|---------------|
-  | dimUser    | 86896         | 84.859375     |
-
-- Compression
-  ```sql
-  ALTER TABLE dimUser
-  REBUILD WITH (DATA_COMPRESSION = PAGE);
-  ```
-  - __PAGE__ = Row compression + Prefix compression
-  - __ROW__ = Row compression
-  - __NONE__ = No compression
-  - __COLUMNSTORE__ = Columnstore compression
-
-- (After compression)
-  ```sql
-  SELECT OBJECT_NAME(object_id) AS "Table Name",
-    SUM(reserved_page_count) * 8 AS "Total Size KB",
-    SUM(reserved_page_count) * 8 / 1024.0 AS "Total Size MB"
-  FROM sys.dm_db_partition_stats
-  WHERE OBJECT_NAME(object_id) = 'dimUser'
-  GROUP BY object_id;
-  ```
-  | Table Name | Total Size KB | Total Size MB |
-  |------------|---------------|---------------|
-  | dimUser    | 39248         | 38.328125     |
-
 ## Talend Java Code
 
-### DimDay-Season
+### DimDay
 ```Java
 int month = Integer.parseInt(TalendDate.formatDate("M", input_row.date));
 int day =  Integer.parseInt(TalendDate.formatDate("dd", input_row.date));
@@ -193,17 +95,7 @@ else if ((month == 9 && day >= 23) || (month >= 10 && month <= 11) || (month == 
 output_row.date=input_row.date;
 ```
 
-### DimTreasureType-PK
-```Java
-output_row.dimTreasureType_key=context.Iterator;
-context.Iterator=context.Iterator+1;
-
-output_row.difficulty=input_row.difficulty;
-output_row.terrain=input_row.terrain;
-output_row.amountOfStages=input_row.amountOfStages;
-```
-
-### DimUser-ExperienceLevel + PK
+### DimUser
 ```Java
 if (input_row.experience_level == 0) output_row.experience_level = "Starter";
 else if (input_row.experience_level < 4) output_row.experience_level = "Amateur";
@@ -222,6 +114,70 @@ output_row.city=input_row.city;
 output_row.country=input_row.country;
 ```
 
+### TreasureFound
+```Java
+Date logTime = input_row.log_time;
+Date sessionStart = input_row.session_start;
+long diffInMillis = logTime.getTime() - sessionStart.getTime();
+Date diffDate = new Date(diffInMillis);
+
+output_row.durationQuest = diffDate;
+output_row.treasure_id = input_row.treasure_id;
+output_row.log_time = input_row.log_time;
+output_row.hunter_id = input_row.hunter_id;
+// En
+if (input_row.weatherType == 200) output_row.dimRain_key = 1;
+else if (input_row.weatherCode == 300) output_row.dimRain_key = 1;
+else if (input_row.weatherCode == 500) output_row.dimRain_key = 1;
+else if (input_row.weatherCode == 600) output_row.dimRain_key = 2;
+else if (input_row.weatherCode == 701) output_row.dimRain_key = 2;
+else if (input_row.weatherCode == 741) output_row.dimRain_key = 2;
+else if (input_row.weatherCode == 781) output_row.dimRain_key = 2;
+else if (input_row.weatherCode == 800) output_row.dimRain_key = 2;
+else if (input_row.weatherCode == 801) output_row.dimRain_key = 2;
+else output_row.dimRain_key = 0;
+
+output_row.dateRecord = input_row.dateRecord;
+```
+
+## Talend SQL Code
+```SQL
+-- Dimension "User"
+SELECT id, first_name, last_name, number, street,
+(SELECT city_name FROM city WHERE city_id = user_table.city_city_id),
+(SELECT name FROM country WHERE code = (SELECT country_code FROM city WHERE city_id = user_table.city_city_id)),
+(SELECT COUNT(*) FROM treasure_log WHERE user_table.id = treasure_log.hunter_id),
+(SELECT COUNT(*) FROM treasure WHERE user_table.id = treasure.owner_id),
+(SELECT TOP 1 log_time FROM treasure_log WHERE user_table.id = treasure_log.hunter_id)
+FROM user_table
+
+
+-- Dimension "TreasureType"
+SELECT DISTINCT id, difficulty, terrain FROM treasure
+LEFT JOIN treasure_stages ts ON id = ts.treasure_id
+WHERE id IN (SELECT treasure_id FROM treasure_log WHERE log_type = 2)
+
+SELECT COUNT(stages_id), treasure_id FROM treasure_stages GROUP BY treasure_id;
+
+
+-- WeatherHistory
+SELECT TOP 10 latitude, longitude FROM city;
+
+
+-- Feitentabel "TreasureFound"
+SELECT DISTINCT  treasure_id,  session_start, log_time, hunter_id FROM treasure_log WHERE log_type = 2;
+SELECT dimUser_key, dimUser_SK, scd_start, scd_end FROM	dimUser;
+SELECT dimDay_key, date FROM dimDay;
+SELECT weatherType, hour, day, month, year FROM weatherHistory;
+SELECT dimTreasureType_key, difficulty, terrain, size FROM	dimTreasureType;
+
+SELECT DISTINCT id, difficulty, terrain FROM treasure
+LEFT JOIN treasure_stages ts ON id = ts.treasure_id
+WHERE id IN (SELECT treasure_id FROM treasure_log WHERE log_type = 2)
+
+SELECT COUNT(stages_id), treasure_id FROM treasure_stages GROUP BY treasure_id;
+```
+
 ## Auteur
 ```JSON
 {
@@ -234,7 +190,7 @@ output_row.country=input_row.country;
       "passie": "Alchemist van elektronica",
       "superkracht": "Transformeert koffie in code!",
       "favoriete_programmeertaal": "C# en Python",
-      "levensmotto": "Perfection is everything.",
+      "levensmotto": "Perfection is everything",
       "uitdaging": "Leren van nieuwe technologieën voor kunstmatige intelligentie en machine learning"
     },
     {
@@ -245,7 +201,7 @@ output_row.country=input_row.country;
       "passie": "Avonturen beleven in de digitale wildernis",
       "superkracht": "Code kloppen met ogen dicht!",
       "favoriete_programmeertaal": "Java en Python",
-      "levensmotto": "Leef elke dag alsof het een nieuw avontuur is.",
+      "levensmotto": "Leef elke dag alsof het een nieuw avontuur is",
       "uitdaging": "Werken aan een open-sourceproject"
     }
   ]
